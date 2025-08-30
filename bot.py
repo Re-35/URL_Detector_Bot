@@ -514,4 +514,53 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(help_text, parse_mode=ParseMode.MARKDOWN)
 
-def
+def main():
+    """Main function to run the bot"""
+    print("🔑 Checking for BOT_TOKEN...")
+    
+    # Get token from environment variable
+    TOKEN = os.getenv('BOT_TOKEN')
+    
+    if not TOKEN:
+        print("❌ BOT_TOKEN environment variable not found!")
+        print("Available environment variables:")
+        for key in os.environ.keys():
+            if 'TOKEN' in key.upper() or 'BOT' in key.upper():
+                print(f"  {key}")
+        exit(1)
+    
+    print("✅ BOT_TOKEN found!")
+    print("🤖 Creating Telegram application...")
+    
+    try:
+        # Create application
+        application = Application.builder().token(TOKEN).build()
+        
+        print("📱 Adding handlers...")
+        
+        # Add handlers
+        application.add_handler(CommandHandler("start", start))
+        application.add_handler(CommandHandler("help", help_command))
+        application.add_handler(CallbackQueryHandler(language_callback, pattern='^lang_'))
+        application.add_handler(CallbackQueryHandler(button_callback))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+        application.add_handler(MessageHandler(filters.Document.ALL, handle_document))
+        
+        # Set bot commands
+        commands = [
+            BotCommand("start", "Start the bot"),
+            BotCommand("help", "Show help message")
+        ]
+        
+        print("🚀 Starting bot with polling...")
+        
+        # Run the bot
+        application.run_polling(allowed_updates=Update.ALL_TYPES)
+        
+    except Exception as e:
+        print(f"❌ Failed to start bot: {e}")
+        logger.error(f"Failed to start bot: {e}")
+        exit(1)
+
+if __name__ == '__main__':
+    main()
