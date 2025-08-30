@@ -279,31 +279,35 @@ async def process_csv_file(file_content, lang='en'):
         
         # Extract countries
         df['country_code'] = df['url'].apply(lambda u: tld.extract(u).suffix if len(tld.extract(u).suffix) == 2 else 'Not defined')
-        df['country'] = df['country_code'].map(dic_ar if lang == 'ar' else dic_en)
-        
+
+        if lang == 'ar':
+            df['country'] = df['country_code'].map(dic_ar)
+            df['countries'] = df['country_code'].map(dic_en)
+        else:
+            df['countries'] = df['country_code'].map(dic_en)
+            
         # Make predictions
         predictions = model.predict(df[['url']])
         df['pred'] = predictions
         
         if lang == 'ar':
             df['result'] = df['pred'].map({0: 'آمن ✅', 1: 'مشبوه ⚠️'})
+            df['results'] = df['pred'].map({0: 'Safe', 1: 'Suspicious'})
         else:
-            df['result'] = df['pred'].map({0: 'Safe ✅', 1: 'Suspicious ⚠️'})
+            df['results'] = df['pred'].map({0: 'Safe ✅', 1: 'Suspicious ⚠️'})
         
         # Create plots
         plt.style.use('default')
         
         # Plot 1: Overall distribution
         plt.figure(figsize=(8, 6))
-        counts = df['result'].value_counts()
+        counts = df['results'].value_counts()
         colors = ['#4CAF50', '#F44336']
         plt.pie(counts.values, labels=counts.index, autopct='%1.1f%%', colors=colors, startangle=90)
+
         
-        if lang == 'ar':
-            plt.title('نسبة الروابط المشبوهة والآمنة', fontsize=16, pad=20)
-        else:
-            plt.title('Distribution of Safe and Suspicious URLs', fontsize=16, pad=20)
-        
+        plt.title('Distribution of Safe and Suspicious URLs', fontsize=16, pad=20)
+            
         # Save plot 1
         buf1 = BytesIO()
         plt.tight_layout()
@@ -313,19 +317,16 @@ async def process_csv_file(file_content, lang='en'):
         
         # Plot 2: Country distribution
         plt.figure(figsize=(12, 8))
-        top_countries = df['country'].value_counts().head(15)
-        country_result = df[df['country'].isin(top_countries.index)].groupby(['country', 'result']).size().unstack(fill_value=0)
+        top_countries = df['countries'].value_counts().head(15)
+        country_result = df[df['countries'].isin(top_countries.index)].groupby(['countries', 'results']).size().unstack(fill_value=0)
         
         country_result.plot(kind='bar', color=['#4CAF50', '#F44336'], figsize=(12, 8))
         
-        if lang == 'ar':
-            plt.title('توزيع الروابط حسب الدول', fontsize=16, pad=20)
-            plt.xlabel('الدول', fontsize=12)
-            plt.ylabel('عدد الروابط', fontsize=12)
-        else:
-            plt.title('URL Distribution by Countries', fontsize=16, pad=20)
-            plt.xlabel('Countries', fontsize=12)
-            plt.ylabel('Number of URLs', fontsize=12)
+     
+        plt.title('URL Distribution by Countries', fontsize=16, pad=20)
+        plt.xlabel('Countries', fontsize=12)
+        plt.ylabel('Number of URLs', fontsize=12)
+        
         
         plt.xticks(rotation=45, ha='right')
         plt.legend()
