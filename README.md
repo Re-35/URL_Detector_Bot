@@ -9,5 +9,5 @@ The features gotten manulay from URLs Dataset by function, example of features: 
 The dataset is fake for ChatGPT that follows the rules of trust and malicious URLs.
 
 # The link of Bot in telegram and in hugginface space:
-[Telegram Bot](t.me/URLs_DetectorBot)
-[Hugging face space](https://huggingface.co/spaces/Re-35/URL_Detector)
+- [Telegram Bot](t.me/URLs_DetectorBot)
+- [Hugging face space](https://huggingface.co/spaces/Re-35/URL_Detector)
